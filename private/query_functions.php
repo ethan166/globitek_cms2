@@ -269,10 +269,6 @@
         $errors[] = "First name must be between 2 and 255 characters.";
       }
 
-      if(is_not_valid($salesperson['first_name'])) {
-        $errors[] = "Only letters, white space and symbols allowed for first name";
-      }
-
 
       if (is_blank($salesperson['last_name'])) {
         $errors[] = "Last name cannot be blank.";
@@ -496,15 +492,16 @@
     global $db;
 
     $username = h($user['username']);
-    
+
     $errors = validate_user($user);
 
     // check_username_uniqueness
     $sql = "SELECT * FROM users WHERE username='$username'";
     $username_result = db_query($db, $sql);
-
+    $found_user = db_fetch_assoc($username_result);
+    $current_id = $found_user['id'];
     $row_cnt = mysqli_num_rows($username_result);
-    if($row_cnt > 0) {
+    if($row_cnt > 0 && (int) $user['id'] != (int) $current_id) {
       $errors[] = "This username already exists. Please choose another one!";
     }
 
@@ -536,10 +533,7 @@
   function delete_user($user) {
     global $db;
 
-    $errors = validate_user($user);
-    if (!empty($errors)) {
-      return $errors;
-    }
+
 
     $sql = "DELETE FROM users ";
     $sql .= "WHERE id='" . $user['id'] . "' ";

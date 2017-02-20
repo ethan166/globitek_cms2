@@ -1,7 +1,7 @@
 <?php
 require_once('../../../private/initialize.php');
 
-$errors = array();
+
 if(!isset($_GET['id'])) {
   redirect_to('index.php');
 }
@@ -14,8 +14,6 @@ if(is_post_request()) {
       $result = delete_user($user);
       if($result === true) {
         redirect_to('index.php');
-      } else {
-        $errors = $result;
       }
   }
   if(isset($_POST['no'])) { redirect_to('index.php'); }
@@ -25,7 +23,7 @@ if(is_post_request()) {
 
 //
 ?>
-<?php $page_title = 'Staff: Delete User ' . $user['first_name'] . " " . $user['last_name']; ?>
+<?php $page_title = 'Staff: Deleting User ' . $user['first_name'] . " " . $user['last_name']; ?>
 <?php include(SHARED_PATH . '/header.php'); ?>
 
 <div id="main-content">
@@ -33,7 +31,7 @@ if(is_post_request()) {
 
   <h1>Delete User: <?php echo $user['first_name'] . " " . $user['last_name']; ?></h1>
 
-  <?php echo display_errors($errors); ?>
+
 
   <form action="#" method="post">
 
