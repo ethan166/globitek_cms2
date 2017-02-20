@@ -33,6 +33,9 @@
       echo "<td>";
       echo "<a href=\"edit.php?id=" . $user['id'] . "\">Edit</a>";
       echo "</td>";
+      echo "<td>";
+      echo "<a href=\"delete.php?id=" . $user['id'] . "\">Delete</a>";
+      echo "</td>";
       echo "</tr>";
     } // end while $user
     db_free_result($users_result);

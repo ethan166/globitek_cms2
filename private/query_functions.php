@@ -54,7 +54,7 @@
       if (is_blank($state['code'])) {
         $errors[] = "Code cannot be blank.";
       }
-      if (is_blank($user['country_id'])) {
+      if (is_blank($state['country_id'])) {
         $errors[] = "Country ID cannot be blank.";
       }
 
@@ -75,9 +75,9 @@
     $sql = "INSERT INTO states ";
     $sql .= "(name, code, country_id) ";
     $sql .= "VALUES (";
-    $sql .= "'" . $state['name'] . "',";
-    $sql .= "'" . $state['code'] . "',";
-    $sql .= "'" . $state['country_id'] . "'";
+    $sql .= "'" . h($state['name']) . "',";
+    $sql .= "'" . h($state['code']) . "',";
+    $sql .= "'" . h($state['country_id']) . "'";
     $sql .= ");";
     // For INSERT statments, $result is just true/false
     $result = db_query($db, $sql);
@@ -103,9 +103,9 @@
     }
 
     $sql = "UPDATE states SET "; //
-    $sql .= "name='" . $state['name'] . "', ";
-    $sql .= "code='" . $state['code'] . "', ";
-    $sql .= "country_id='" . $state['country_id'] . "' ";
+    $sql .= "name='" . h($state['name']) . "', ";
+    $sql .= "code='" . h($state['code']) . "', ";
+    $sql .= "country_id='" . h($state['country_id']) . "' ";
     $sql .= "WHERE id='" . $state['id'] . "' ";
     $sql .= "LIMIT 1;";
 
@@ -182,9 +182,9 @@
     $sql = "INSERT INTO territories ";
     $sql .= "(name, state_id, position) ";
     $sql .= "VALUES (";
-    $sql .= "'" . $territory['name'] . "',";
-    $sql .= "'" . $territory['state_id'] . "',";
-    $sql .= "'" . $territory['position'] . "'";
+    $sql .= "'" . h($territory['name']) . "',";
+    $sql .= "'" . h($territory['state_id']) . "',";
+    $sql .= "'" . h($territory['position']) . "'";
     $sql .= ");";
     $result = db_query($db, $sql);
     if($result) {
@@ -209,9 +209,9 @@
     }
 
     $sql = "UPDATE territories SET ";
-    $sql .= "name='" . $territory['name'] . "', ";
-    $sql .= "position='" . $territory['position'] . "' ";
-    $sql .= "WHERE id='" . $territory['id'] . "' ";
+    $sql .= "name='" . h($territory['name']) . "', ";
+    $sql .= "position='" . h($territory['position']) . "' ";
+    $sql .= "WHERE id='" . h($territory['id']) . "' ";
     $sql .= "LIMIT 1;";
     $result = db_query($db, $sql);
     if($result) {
@@ -315,10 +315,10 @@
     $sql = "INSERT INTO salespeople ";
     $sql .= "(first_name, last_name, phone, email) ";
     $sql .= "VALUES (";
-    $sql .= "'" . $salesperson['first_name'] . "',";
-    $sql .= "'" . $salesperson['last_name'] . "',";
-    $sql .= "'" . $salesperson['phone'] . "',";
-    $sql .= "'" . $salesperson['email'] . "'";
+    $sql .= "'" . h($salesperson['first_name']) . "',";
+    $sql .= "'" . h($salesperson['last_name']) . "',";
+    $sql .= "'" . h($salesperson['phone']) . "',";
+    $sql .= "'" . h($salesperson['email']) . "'";
     $sql .= ");";
     // For INSERT statments, $result is just true/false
     $result = db_query($db, $sql);
@@ -347,10 +347,10 @@
     // For update_salesperson statments, $result is just true/false
 
     $sql = "UPDATE salespeople SET ";
-    $sql .= "first_name='" . $salesperson['first_name'] . "', ";
-    $sql .= "last_name='" . $salesperson['last_name'] . "', ";
-    $sql .= "phone='" . $salesperson['phone'] . "', ";
-    $sql .= "email='" . $salesperson['email'] . "' ";
+    $sql .= "first_name='" . h($salesperson['first_name']) . "', ";
+    $sql .= "last_name='" . h($salesperson['last_name']) . "', ";
+    $sql .= "phone='" . h($salesperson['phone']) . "', ";
+    $sql .= "email='" . h($salesperson['email']) . "' ";
     $sql .= "WHERE id='" . $salesperson['id'] . "' ";
     $sql .= "LIMIT 1;";
     $result = db_query($db, $sql);
@@ -407,7 +407,7 @@
       $errors[] = "First name must be between 2 and 255 characters.";
     }
 
-  
+
 
     if (is_blank($user['last_name'])) {
       $errors[] = "Last name cannot be blank.";
@@ -426,6 +426,8 @@
     } elseif (!has_length($user['username'], array('max' => 255))) {
       $errors[] = "Username must be less than 255 characters.";
     }
+
+
     // input validations
     if (!preg_match("/^[a-zA-Z\d._]*$/",$user['username'])) {
       $errors[] = "Only letters, numbers and an underscore allowed for the username";
@@ -448,11 +450,22 @@
     $username = h($user['username']);
 
 
+    //Bonus 2
     $errors = validate_user($user);
+
+
+    // check_username_uniqueness
+    $sql = "SELECT * FROM users WHERE username='$username'";
+    $username_result = db_query($db, $sql);
+
+    $row_cnt = mysqli_num_rows($username_result);
+    if($row_cnt > 0) {
+      $errors[] = "This username already exists. Please choose another one!";
+    }
+
     if (!empty($errors)) {
       return $errors;
     }
-
     $created_at = date("Y-m-d H:i:s");
     $sql = "INSERT INTO users ";
     $sql .= "(first_name, last_name, email, username, created_at) ";
@@ -482,16 +495,29 @@
   function update_user($user) {
     global $db;
 
+    $username = h($user['username']);
+    
     $errors = validate_user($user);
+
+    // check_username_uniqueness
+    $sql = "SELECT * FROM users WHERE username='$username'";
+    $username_result = db_query($db, $sql);
+
+    $row_cnt = mysqli_num_rows($username_result);
+    if($row_cnt > 0) {
+      $errors[] = "This username already exists. Please choose another one!";
+    }
+
+
     if (!empty($errors)) {
       return $errors;
     }
 
     $sql = "UPDATE users SET ";
-    $sql .= "first_name='" . $user['first_name'] . "', ";
-    $sql .= "last_name='" . $user['last_name'] . "', ";
-    $sql .= "email='" . $user['email'] . "', ";
-    $sql .= "username='" . $user['username'] . "' ";
+    $sql .= "first_name='" . h($user['first_name']) . "', ";
+    $sql .= "last_name='" . h($user['last_name']) . "', ";
+    $sql .= "email='" . sanitize_email($user['email']) . "', ";
+    $sql .= "username='" . h($user['username']) . "' ";
     $sql .= "WHERE id='" . $user['id'] . "' ";
     $sql .= "LIMIT 1;";
     // For update_user statments, $result is just true/false
@@ -507,4 +533,28 @@
     }
   }
 
+  function delete_user($user) {
+    global $db;
+
+    $errors = validate_user($user);
+    if (!empty($errors)) {
+      return $errors;
+    }
+
+    $sql = "DELETE FROM users ";
+    $sql .= "WHERE id='" . $user['id'] . "' ";
+    $sql .= "LIMIT 1;";
+    // For update_user statments, $result is just true/false
+    $result = db_query($db, $sql);
+    if($result) {
+      return true;
+    } else {
+      // The SQL UPDATE statement failed.
+      // Just show the error, not the form
+      echo db_error($db);
+      db_close($db);
+      exit;
+    }
+
+  }
 ?>

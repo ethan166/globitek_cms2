@@ -18,8 +18,6 @@
       return true;
     }
   }
-
-
   // has_valid_email_format('test@test.com')
   function has_valid_email_format($value) {
     // Function can be improved later to check for
